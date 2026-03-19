@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "productcatalogservice only needs catalog data, not a default API credential—drop automount to shrink what a compromised Go binary can steal beyond its own ConfigMaps.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Violations explicitly describe automounted default tokens on a deployment that should be a plain data service.",
+    "attack_vector": "An exploited catalog pod could use the token to read namespaced objects the default SA can list/watch.",
+    "blast_radius": "Read-heavy catalog tier; impact scales with how permissive default SA is inside ms-demo.",
+    "prioritization_score": 53,
+    "prioritization_rationale": "Standard MEDIUM posture issue unless threat modeling shows sensitive catalog configuration in etcd-accessible objects.",
+    "recommended_actions": [
+      "Set automountServiceAccountToken false and redeploy productcatalogservice.",
+      "Mirror the manifest change in shared bases so future demos inherit the secure default.",
+      "Re-scan to ensure related duplicate alerts collapse after rollout."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Pre-merge CI check that fails when new Deployments omit explicit automount settings in prod namespaces."
+    ]
+  }
+}

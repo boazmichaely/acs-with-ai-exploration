@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "paymentservice still automounts the default service-account token even though payment microservices almost never call the Kubernetes API—disable automount unless you prove in-cluster clients.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Violations explicitly state the Deployment mounts tokens while using the default service account, matching the policy’s technical predicate.",
+    "attack_vector": "A compromised paymentservice pod could read the mounted token and attempt API calls permitted to that identity.",
+    "blast_radius": "Namespace-scoped to ms-demo unless default SA bindings are accidentally over-privileged cluster-wide.",
+    "prioritization_score": 59,
+    "prioritization_rationale": "MEDIUM policy but payment-tier adjacency nudges priority over generic microservices with the same configuration debt.",
+    "recommended_actions": [
+      "Set automountServiceAccountToken: false on the paymentservice Pod template.",
+      "Introduce a dedicated ServiceAccount only if the app must talk to Kubernetes APIs.",
+      "Verify RBAC for namespace default SA is minimal before and after the change."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Bundle the manifest tweak with upcoming payment-service releases to avoid emergency redeploy chatter."
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "Repeated kube:admin pods/exec into adservice running netcat-style probes is high-risk operational access you should confine, justify, and audit like break-glass activity.",
+    "risk_level": "HIGH",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Runtime Kubernetes audit evidence shows actual exec with shell and nc against an internal IP; that is exactly what this policy is meant to catch.",
+    "attack_vector": "Broad pods/exec rights let insiders or stolen credentials pivot through live containers, run network tooling, and harvest secrets mounted in-pod.",
+    "blast_radius": "adservice in ms-demo today, but cluster-admin-equivalent actors can reuse the pattern across namespaces if RBAC stays loose.",
+    "prioritization_score": 88,
+    "prioritization_rationale": "HIGH policy severity plus interactive tooling and privileged group membership on the caller beats image-only findings for urgency.",
+    "recommended_actions": [
+      "Remove day-to-day cluster-admin from troubleshooting flows; scope pods/exec to break-glass roles only.",
+      "Correlate these execs with change tickets; if legitimate, publish a runbook that avoids nc inside prod pods.",
+      "Consider Gatekeeper/OPA guardrails that warn when cluster-admins use exec outside approved maintenance windows."
+    ],
+    "timeline": "immediate",
+    "mitigation_strategies": [
+      "Enable and ship Kubernetes audit logs for exec/attach to a SIEM rule until RBAC is tightened."
+    ]
+  }
+}

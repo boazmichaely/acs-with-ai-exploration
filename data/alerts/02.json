@@ -1,0 +1,58 @@
+{
+  "id": "f23fb82e-77d7-49f2-96eb-c478ee822d72",
+  "policy": {
+    "name": "Alpine Linux Package Manager (apk) in Image",
+    "severity": "LOW_SEVERITY",
+    "description": "Alert on deployments with the Alpine Linux package manager (apk) present",
+    "rationale": "Package managers make it easier for attackers to use compromised containers, since they can easily add software.",
+    "remediation": "Run `apk --purge del apk-tools` in the image build for production containers.",
+    "categories": [
+      "Security Best Practices"
+    ],
+    "lifecycleStages": [
+      "BUILD",
+      "DEPLOY"
+    ]
+  },
+  "lifecycleStage": "DEPLOY",
+  "clusterName": "bm-customer-demo",
+  "namespace": "ms-demo",
+  "deployment": {
+    "name": "redis-cart",
+    "type": "Deployment",
+    "namespace": "ms-demo",
+    "labels": {
+      "app.openshift.io/runtime": "redis"
+    },
+    "containers": [
+      {
+        "name": "redis",
+        "image": {
+          "id": "sha256:2afba59292f25f5d1af200496db41bea2c6c816b059f57ae74703a50a03a27d0",
+          "name": {
+            "registry": "docker.io",
+            "remote": "library/redis",
+            "tag": "alpine",
+            "fullName": "docker.io/library/redis:alpine"
+          },
+          "notPullable": false,
+          "isClusterLocal": false,
+          "idV2": ""
+        }
+      }
+    ]
+  },
+  "image": null,
+  "resource": null,
+  "violations": [
+    {
+      "message": "Container 'redis' includes component 'apk-tools' (version 3.0.3-r1)",
+      "type": "GENERIC",
+      "time": null
+    }
+  ],
+  "time": "2026-03-09T20:16:16.257286132Z",
+  "firstOccurred": "2026-03-09T20:16:16.257286132Z",
+  "state": "ACTIVE",
+  "entityType": "DEPLOYMENT"
+}

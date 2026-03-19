@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "checkoutservice sits on the purchase path but still exposes the default SA token—treat this instance as slightly higher urgency than catalog-only peers when you schedule the automount fix.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Multiple GENERIC violations enumerate token mounting with default SA; ACS correctly flags unnecessary credentials on a tier-zero adjacent workload.",
+    "attack_vector": "Application compromise plus token theft could enable API enumeration or secret access proportional to default SA RBAC.",
+    "blast_radius": "Checkout outages or fraud-scale impact if attackers pivot from web bugs into cluster credentials.",
+    "prioritization_score": 63,
+    "prioritization_rationale": "MEDIUM policy baseline with a bump for business criticality of checkout compared with auxiliary services.",
+    "recommended_actions": [
+      "Disable automount on the checkout Deployment during the next maintenance window if no API dependency exists.",
+      "Smoke-test order placement after rollout to guard against hidden kubectl dependencies.",
+      "Pair change with secret rotation policy if default SA had surprising RoleBindings."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Add monitoring for unusual Kubernetes API access originating from checkout pods during the transition."
+    ]
+  }
+}

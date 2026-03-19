@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "loadgenerator carries a default SA token it likely never uses—still fix automount for consistency, but it can trail customer-facing services if capacity is tight.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Policy conditions match: workload under test automounts default credentials despite no obvious API client behavior.",
+    "attack_vector": "Less interesting to external attackers, but noisy egress plus token access still helps an insider pivot during chaos testing.",
+    "blast_radius": "Limited to the load test Deployment; business impact mainly if generator shares credentials with prod namespaces accidentally.",
+    "prioritization_score": 47,
+    "prioritization_rationale": "MEDIUM severity but lower business criticality than storefront tiers earns a modest score discount.",
+    "recommended_actions": [
+      "Turn off automount unless the harness truly drives Kubernetes API calls.",
+      "Isolate loadgenerator in a policy sandbox namespace if it must stay noisy.",
+      "Document whether this workload is non-prod-only to set stakeholder expectations."
+    ],
+    "timeline": "medium-term",
+    "mitigation_strategies": [
+      "Ensure load tests cannot reach production namespaces via shared service accounts or routes."
+    ]
+  }
+}

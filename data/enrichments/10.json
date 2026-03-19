@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "frontend is user-exposed and still automounts the default SA token—strip it while you harden ingress because a compromised web pod shouldn’t get a free Kubernetes credential.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Classic default-SA token case on an Internet-adjacent workload; ACS is reporting the exact condition the policy describes.",
+    "attack_vector": "Web RCE plus token theft could bootstrap cluster reconnaissance from a public entrypoint.",
+    "blast_radius": "Entire cluster perception if default SA RBAC or routes allow lateral movement beyond ms-demo.",
+    "prioritization_score": 60,
+    "prioritization_rationale": "MEDIUM baseline with an exposure bump for being the browser-facing tier in the demo topology.",
+    "recommended_actions": [
+      "Set automountServiceAccountToken false on the frontend Deployment unless server.go truly needs API access.",
+      "Review Route and NetworkPolicy to ensure only required ports are reachable.",
+      "Combine with WAF/rate limits while remediating underlying mount hygiene."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Canary the change: watch error budgets after deploy since some demos wire unexpected readiness hooks."
+    ]
+  }
+}

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Violations</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@5.4.2/patternfly.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@5.4.2/patternfly-addons.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" />
+  <style>
+    body { margin: 0; min-height: 100vh; background: var(--pf-v5-global--BackgroundColor--100); }
+    .demo-page-title { font-size: var(--pf-v5-global--FontSize--xl); font-weight: var(--pf-v5-global--FontWeight--bold); margin: 0 0 var(--pf-v5-global--spacer--sm); }
+    .demo-subtle { color: var(--pf-v5-global--Color--200); font-size: var(--pf-v5-global--FontSize--sm); }
+    /* Full-width content (no centered column = no empty left gutter) */
+    .demo-pad { padding: var(--pf-v5-global--spacer--lg); box-sizing: border-box; }
+
+    .demo-toolbar-stack { margin-bottom: var(--pf-v5-global--spacer--sm); }
+    .demo-toolbar-stack .pf-v5-c-toolbar__group { flex-wrap: wrap; gap: var(--pf-v5-global--spacer--sm); }
+
+    /* Compact bulk bar — always visible; idle (0 selected) vs active */
+    .bulk-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--pf-v5-global--spacer--sm) var(--pf-v5-global--spacer--md);
+      padding: 6px 12px;
+      min-height: 0;
+      background: var(--pf-v5-global--palette--black-100);
+      border: 1px solid var(--pf-v5-global--BorderColor--100);
+      border-radius: var(--pf-v5-global--BorderRadius--sm);
+      margin-bottom: 0;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .bulk-toolbar__results {
+      margin-left: auto;
+      font-size: var(--pf-v5-global--FontSize--sm);
+      font-weight: var(--pf-v5-global--FontWeight--bold);
+      color: var(--pf-v5-global--Color--100);
+      white-space: nowrap;
+    }
+    .bulk-toolbar.bulk-toolbar--has-selection {
+      background: var(--pf-v5-global--palette--blue-50);
+      border-color: var(--pf-v5-global--palette--blue-100);
+    }
+    .bulk-toolbar__count {
+      color: var(--pf-v5-global--Color--200);
+      font-weight: var(--pf-v5-global--FontWeight--bold);
+    }
+    .bulk-toolbar--has-selection .bulk-toolbar__count {
+      color: var(--pf-v5-global--Color--100);
+    }
+    .bulk-toolbar .pf-v5-c-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    /* Table sits flush under bulk bar (no dead air) */
+    #bulkProgress[hidden] {
+      display: none !important;
+      margin: 0 !important;
+    }
+    #bulkProgress:not([hidden]) {
+      margin: var(--pf-v5-global--spacer--xs) 0;
+    }
+    .violations-table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 0;
+      border: 1px solid var(--pf-v5-global--BorderColor--100);
+      border-radius: var(--pf-v5-global--BorderRadius--sm);
+      background: var(--pf-v5-global--BackgroundColor--100);
+    }
+    /* No responsive grid on table — avoids merged header labels on narrow widths */
+    .violations-table.pf-v5-c-table {
+      table-layout: auto;
+      min-width: 1040px;
+    }
+    .violations-table.pf-v5-c-table thead th {
+      white-space: nowrap;
+      font-weight: 600;
+      padding-top: var(--pf-v5-global--spacer--sm);
+      padding-bottom: var(--pf-v5-global--spacer--sm);
+    }
+    .violations-table.pf-v5-c-table tbody td {
+      vertical-align: top;
+      padding-top: var(--pf-v5-global--spacer--sm);
+      padding-bottom: var(--pf-v5-global--spacer--sm);
+    }
+    /* Space after checkbox column (PF default was flush to Policy text) */
+    .violations-table th.pf-v5-c-table__check,
+    .violations-table td.pf-v5-c-table__check {
+      padding-left: var(--pf-v5-global--spacer--md);
+      padding-right: var(--pf-v5-global--spacer--lg);
+      width: 1%;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .violations-table .cell-entity-name { font-weight: 500; }
+    .violations-table .cell-entity-ns { display: block; margin-top: 2px; }
+
+    /* ACS-style severity: icons (High=^^, Med==, Low=vv) approximating console */
+    .severity-icons {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem;
+      font-size: var(--pf-v5-global--FontSize--sm);
+      font-weight: var(--pf-v5-global--FontWeight--bold);
+      line-height: 1;
+      letter-spacing: -0.12em;
+    }
+    .severity-icons--high { color: var(--pf-v5-global--palette--orange-400); }
+    .severity-icons--medium { color: var(--pf-v5-global--palette--gold-400); letter-spacing: 0; }
+    .severity-icons--low { color: var(--pf-v5-global--palette--blue-400); }
+    .severity-icons--critical { color: var(--pf-v5-global--palette--red-400); }
+
+    /* AI column: green pill = score after enrichment; dashed circle = not yet */
+    .ai-badge-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      min-height: 2rem;
+      padding: 0;
+      border-radius: 50%;
+      font-size: var(--pf-v5-global--FontSize--xs);
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      box-sizing: border-box;
+    }
+    .ai-badge-btn--filled {
+      border: 2px solid var(--pf-v5-global--palette--green-400);
+      background: var(--pf-v5-global--palette--green-400);
+      color: var(--pf-v5-global--palette--white);
+      border-radius: 999px;
+      min-width: 2rem;
+      padding: 0 0.45rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .ai-badge-btn--outline {
+      border: 2px dashed var(--pf-v5-global--palette--green-400);
+      background: transparent;
+      color: var(--pf-v5-global--palette--green-400);
+    }
+    .ai-badge-btn:hover { filter: brightness(0.95); }
+    .ai-badge-btn:focus { outline: 2px solid var(--pf-v5-global--active-color--100); outline-offset: 2px; }
+
+    /* ACS-only popup (contrast with AI drawer) */
+    .acs-modal-root[hidden] { display: none !important; }
+    .acs-modal-root {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    .acs-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 3, 3, 0.45);
+      cursor: pointer;
+    }
+    /* Sharp corners: large PF radius reads “pill/circle” on narrow dialogs */
+    .acs-modal-dialog {
+      position: relative;
+      width: min(640px, 92vw);
+      max-height: min(85vh, 720px);
+      display: flex;
+      flex-direction: column;
+      background: var(--pf-v5-global--BackgroundColor--100);
+      border-radius: 2px;
+      border: 1px solid var(--pf-v5-global--BorderColor--200);
+      box-shadow: 0 12px 40px rgba(3, 3, 3, 0.18);
+      overflow: hidden;
+    }
+    .acs-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--pf-v5-global--BorderColor--100);
+      flex-shrink: 0;
+    }
+    .acs-modal-header h2 { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.3; }
+    .acs-modal-sub { margin: 0.2rem 0 0; font-size: 0.8125rem; color: var(--pf-v5-global--Color--200); }
+    .acs-modal-body {
+      padding: 0.85rem 1.1rem 1.1rem;
+      overflow: auto;
+      font-size: 0.875rem;
+      line-height: 1.55;
+    }
+    .acs-modal-body .drawer-section__lede { margin-bottom: 0.75rem; font-size: 0.8125rem; }
+    .acs-modal-body .detail-table { font-size: 0.875rem; }
+
+    /* ~half viewport — reads like a compact side panel */
+    #drawerPanel.drawer-panel--half.pf-v5-c-drawer__panel {
+      flex: 0 0 50vw;
+      max-width: 50vw;
+      min-width: min(50vw, 100%);
+      box-sizing: border-box;
+      box-shadow: -6px 0 20px rgba(3, 3, 3, 0.08);
+    }
+    @media (max-width: 768px) {
+      #drawerPanel.drawer-panel--half.pf-v5-c-drawer__panel {
+        flex: 0 0 100vw;
+        max-width: 100vw;
+      }
+    }
+
+    .drawer-inner {
+      font-size: 0.875rem;
+      line-height: 1.5;
+      padding: 0.6rem 0.85rem 4.5rem;
+      box-sizing: border-box;
+    }
+    .ai-panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; }
+    .drawer-context-line { font-size: 0.8125rem; font-weight: 600; color: var(--pf-v5-global--Color--100); line-height: 1.3; margin: 0; }
+    .drawer-section { margin-top: 0.65rem; }
+    .drawer-section--ai { margin-top: 0; }
+    .drawer-section--details {
+      margin-top: 0.65rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid var(--pf-v5-global--BorderColor--100);
+    }
+
+    /* Collapsible ACS block in AI drawer (closed by default) */
+    .drawer-details-expandable {
+      margin-top: 0.65rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid var(--pf-v5-global--BorderColor--100);
+    }
+    .drawer-details-expandable__summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      padding: 0.2rem 0;
+      user-select: none;
+    }
+    .drawer-details-expandable__summary::-webkit-details-marker { display: none; }
+    .drawer-details-expandable__summary .drawer-details-expandable__chev {
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      color: var(--pf-v5-global--Color--200);
+      transition: transform 0.15s ease;
+    }
+    .drawer-details-expandable[open] .drawer-details-expandable__summary .drawer-details-expandable__chev {
+      transform: rotate(90deg);
+    }
+    .drawer-details-expandable__titles {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+    .drawer-details-expandable__titles .drawer-section__title {
+      margin: 0 !important;
+    }
+    .drawer-details-expandable__titles .drawer-section__lede {
+      margin: 0 !important;
+    }
+    .drawer-details-expandable__panel {
+      margin-top: 0.55rem;
+      padding-left: 1rem;
+    }
+    .drawer-section__title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--pf-v5-global--Color--100); margin: 0 0 0.4rem; }
+    .drawer-section__hint { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.6875rem; color: var(--pf-v5-global--Color--200); }
+    .drawer-section__lede { font-size: 0.8125rem; color: var(--pf-v5-global--Color--200); margin: 0 0 0.5rem; line-height: 1.45; font-weight: 400; }
+    .detail-loading { display: flex; align-items: center; gap: 0.35rem; margin: 0; font-size: 0.6875rem; color: var(--pf-v5-global--Color--200); }
+
+    .detail-table {
+      width: 100%;
+      table-layout: fixed;
+      font-size: 0.875rem;
+      line-height: 1.55;
+      border-collapse: collapse;
+    }
+    .detail-table tbody th {
+      width: 9.75rem;
+      vertical-align: top;
+      color: var(--pf-v5-global--Color--100);
+      font-weight: 700;
+      padding: 0.55rem 0.65rem 0.55rem 0;
+      border-bottom: 1px solid var(--pf-v5-global--BorderColor--100);
+    }
+    .detail-table tbody td {
+      vertical-align: top;
+      word-break: break-word;
+      padding: 0.55rem 0 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--pf-v5-global--BorderColor--100);
+      color: var(--pf-v5-global--Color--100);
+    }
+    .detail-table tbody tr:nth-child(even) th,
+    .detail-table tbody tr:nth-child(even) td {
+      background: var(--pf-v5-global--BackgroundColor--200);
+    }
+    .detail-table tbody tr:last-child th,
+    .detail-table tbody tr:last-child td { border-bottom: none; }
+
+    .ai-prose { font-size: 0.875rem; line-height: 1.6; color: var(--pf-v5-global--Color--100); }
+    .ai-prose p { margin: 0 0 0.85rem; }
+    .ai-prose p:last-child { margin-bottom: 0; }
+    .ai-prose strong { font-weight: 700; color: var(--pf-v5-global--Color--100); }
+    .ai-prose ul, .ai-prose ol { margin: 0.35rem 0 0.85rem; padding-left: 1.25rem; }
+    .ai-prose li { margin-bottom: 0.35rem; }
+    .drawer-inner .ai-prose { font-size: 0.875rem; line-height: 1.6; }
+    #drawerAiBody .ai-prose > :first-child { margin-top: 0; }
+    #drawerAiContent { margin-top: 0; }
+
+    /* Hero quick-read (score + labels + one-sentence summary) */
+    .ai-hero {
+      background: linear-gradient(145deg, var(--pf-v5-global--palette--blue-50) 0%, var(--pf-v5-global--BackgroundColor--100) 100%);
+      border: 1px solid var(--pf-v5-global--palette--blue-100);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.9rem;
+      box-shadow: 0 4px 14px rgba(0, 40, 120, 0.07);
+    }
+    .ai-hero__top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .ai-hero__meta { flex: 1; min-width: 0; }
+    .ai-hero__meta .pf-v5-c-label { font-size: 0.7rem; }
+    .score-ring {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid var(--pf-v5-global--palette--gold-400);
+      font-weight: 700;
+      font-size: 1rem;
+      background: var(--pf-v5-global--BackgroundColor--100);
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+    .ai-hero__summary {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      line-height: 1.45;
+      color: var(--pf-v5-global--Color--100);
+      margin: 0.75rem 0 0;
+      letter-spacing: -0.01em;
+    }
+    .ai-prose--details { margin-top: 0.25rem; }
+    .drawer-footer {
+      position: sticky;
+      bottom: 0;
+      margin: 0 -0.65rem;
+      margin-top: 0.5rem;
+      padding: 0.35rem 0.65rem;
+      background: var(--pf-v5-global--BackgroundColor--100);
+      border-top: 1px solid var(--pf-v5-global--BorderColor--100);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.35rem;
+    }
+    .drawer-footer .pf-v5-c-button { font-size: 0.75rem; padding-top: 0.25rem; padding-bottom: 0.25rem; }
+
+    /* Single tight row while AI is generating — no empty card block */
+    .ai-loading-inline {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin: 0 0 0.5rem 0;
+      padding: 0;
+      min-height: 0;
+    }
+    /* display:flex above would defeat HTML [hidden]; keep loading row out of layout when inactive */
+    .ai-loading-inline[hidden] {
+      display: none !important;
+    }
+    .ai-loading-inline__col { flex: 1; min-width: 0; }
+    /* Indeterminate pulse — animation runs only while .is-animating (stops when data arrives) */
+    .ai-loading-pulse {
+      position: relative;
+      height: 5px;
+      border-radius: 3px;
+      margin-top: 0.55rem;
+      background: var(--pf-v5-global--BorderColor--100);
+      overflow: hidden;
+    }
+    .ai-loading-pulse.is-animating::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 42%;
+      border-radius: inherit;
+      background: linear-gradient(
+        90deg,
+        var(--pf-v5-global--palette--blue-200),
+        var(--pf-v5-global--palette--blue-400),
+        var(--pf-v5-global--palette--blue-200)
+      );
+      animation: ai-loading-pulse-slide 1.15s ease-in-out infinite;
+      opacity: 0.95;
+    }
+    @keyframes ai-loading-pulse-slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(320%); }
+    }
+    code { font-size: 0.85em; }
+  </style>
+</head>
+<body class="pf-v5-u-background-color-100">
+  <div id="drawerRoot" class="pf-v5-c-drawer">
+    <div class="pf-v5-c-drawer__main">
+      <div class="pf-v5-c-drawer__content">
+        <div class="demo-pad">
+          <h1 class="demo-page-title">Violations</h1>
+
+          <div class="pf-v5-c-toolbar demo-toolbar-stack" role="group" aria-label="Filter violations">
+            <div class="pf-v5-c-toolbar__content">
+              <div class="pf-v5-c-toolbar__content-section">
+                <div class="pf-v5-c-toolbar__group pf-m-filter-group">
+                  <div class="pf-v5-c-toolbar__item">
+                    <button class="pf-v5-c-menu-toggle" type="button" disabled><span class="pf-v5-c-menu-toggle__button-text">Policy</span></button>
+                  </div>
+                  <div class="pf-v5-c-toolbar__item">
+                    <button class="pf-v5-c-menu-toggle" type="button" disabled><span class="pf-v5-c-menu-toggle__button-text">Name</span></button>
+                  </div>
+                  <div class="pf-v5-c-toolbar__item" style="flex:1;min-width:200px;max-width:480px">
+                    <span class="pf-v5-c-form-control">
+                      <input type="text" placeholder="Filter results by Policy name" disabled aria-label="Filter by policy name" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="bulkBar" class="bulk-toolbar">
+            <span class="bulk-toolbar__count"><span id="bulkCount">0</span> selected</span>
+            <button type="button" class="pf-v5-c-button pf-m-primary" id="btnBulkEnrich">
+              <span class="pf-v5-c-button__icon pf-m-start"><i class="fas fa-robot"></i></span>
+              Enrich with AI
+            </button>
+            <span class="bulk-toolbar__results"><span id="resultCount">0</span> results found</span>
+          </div>
+
+          <div id="bulkProgress" class="pf-v5-c-alert pf-m-info" hidden role="status">
+            <div class="pf-v5-c-alert__icon"><span class="pf-v5-c-spinner pf-m-md" role="progressbar"></span></div>
+            <div class="pf-v5-c-alert__description"><span id="bulkProgressText"></span></div>
+          </div>
+
+          <div class="violations-table-scroll">
+            <table class="pf-v5-c-table violations-table" role="grid" id="violationsTable">
+              <thead>
+                <tr>
+                  <th class="pf-v5-c-table__check">
+                    <input type="checkbox" id="selectAll" aria-label="Select all rows" />
+                  </th>
+                  <th>Policy</th>
+                  <th>Entity</th>
+                  <th>Type</th>
+                  <th>Enforced</th>
+                  <th>Severity</th>
+                  <th>Categories</th>
+                  <th>Lifecycle</th>
+                  <th>Time</th>
+                  <th>AI</th>
+                </tr>
+              </thead>
+              <tbody id="violationsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer panel -->
+      <div class="pf-v5-c-drawer__panel drawer-panel--half" id="drawerPanel" hidden>
+        <div class="pf-v5-c-drawer__body" style="max-height:100vh;overflow:auto;padding:0;">
+          <div class="drawer-inner">
+            <div class="ai-panel-header">
+              <p class="drawer-context-line pf-v5-u-mb-0" id="drawerSubtitle">—</p>
+              <button class="pf-v5-c-button pf-m-plain" type="button" id="closeDrawer" aria-label="Close panel"><span class="pf-v5-c-button__icon"><i class="fas fa-times"></i></span></button>
+            </div>
+
+            <section class="drawer-section drawer-section--ai" aria-label="AI summary">
+              <h2 class="drawer-section__title">AI summary</h2>
+              <div id="drawerAiContent">
+                <div class="ai-loading-inline" id="drawerAiLoading" hidden>
+                  <span class="pf-v5-c-spinner pf-m-md" role="status" aria-label="Generating AI summary"></span>
+                  <div class="ai-loading-inline__col">
+                    <div class="ai-loading-pulse" id="drawerAiLoadingPulse" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="In progress"></div>
+                  </div>
+                </div>
+                <div id="drawerAiBody" hidden></div>
+              </div>
+            </section>
+
+            <details class="drawer-details-expandable" id="drawerViolationDetails" aria-label="Violation details from ACS">
+              <summary class="drawer-details-expandable__summary">
+                <span class="drawer-details-expandable__chev" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                <span class="drawer-details-expandable__titles">
+                  <span class="drawer-section__title">Violation details</span>
+                  <span class="drawer-section__lede">Original violation data from ACS</span>
+                </span>
+              </summary>
+              <div class="drawer-details-expandable__panel">
+                <div id="drawerViolationCtx">—</div>
+              </div>
+            </details>
+          </div>
+
+          <div class="drawer-footer">
+            <button class="pf-v5-c-button pf-m-secondary" type="button" id="closeDrawer2">Close</button>
+            <button class="pf-v5-c-button pf-m-primary" type="button" id="btnRefreshAi" title="Re-load enrichment">
+              <span class="pf-v5-c-button__icon pf-m-start"><i class="fas fa-sync"></i></span>
+              Refresh AI
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACS-only details (contrast with AI panel) -->
+  <div id="acsModalRoot" class="acs-modal-root" hidden>
+    <div class="acs-modal-backdrop" id="acsModalBackdrop" aria-hidden="true"></div>
+    <div class="acs-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="acsModalTitle">
+      <div class="acs-modal-header">
+        <div>
+          <h2 id="acsModalTitle">Violation</h2>
+          <p class="acs-modal-sub" id="acsModalSub"></p>
+        </div>
+        <button type="button" class="pf-v5-c-button pf-m-plain" id="acsModalClose" aria-label="Close dialog"><span class="pf-v5-c-button__icon"><i class="fas fa-times"></i></span></button>
+      </div>
+      <div class="acs-modal-body" id="acsModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Must load before the app script so window.__MOCK_DATA__ exists (works with file://) -->
+  <script src="mock-data.js"></script>
+  <script>
+(function () {
+  /** Simulated network + LLM latency (ms). Tune for demos. */
+  var AI_SIMULATED_LATENCY_MS = 3000;
+
+  var manifest = null;
+  var enrichedCache = Object.create(null); // slug -> ai_analysis
+  var alertCache = Object.create(null); // slug -> full alert json
+  var currentSlug = null;
+  var acsModalSlug = null;
+
+  var el = {
+    tbody: document.getElementById('violationsTableBody'),
+    selectAll: document.getElementById('selectAll'),
+    bulkBar: document.getElementById('bulkBar'),
+    bulkCount: document.getElementById('bulkCount'),
+    btnBulk: document.getElementById('btnBulkEnrich'),
+    resultCount: document.getElementById('resultCount'),
+    drawerRoot: document.getElementById('drawerRoot'),
+    drawerPanel: document.getElementById('drawerPanel'),
+    drawerSubtitle: document.getElementById('drawerSubtitle'),
+    drawerViolationCtx: document.getElementById('drawerViolationCtx'),
+    drawerAiLoading: document.getElementById('drawerAiLoading'),
+    drawerAiLoadingPulse: document.getElementById('drawerAiLoadingPulse'),
+    drawerAiBody: document.getElementById('drawerAiBody'),
+    closeDrawer: document.getElementById('closeDrawer'),
+    closeDrawer2: document.getElementById('closeDrawer2'),
+    btnRefreshAi: document.getElementById('btnRefreshAi'),
+    bulkProgress: document.getElementById('bulkProgress'),
+    bulkProgressText: document.getElementById('bulkProgressText'),
+    acsModalRoot: document.getElementById('acsModalRoot'),
+    acsModalBody: document.getElementById('acsModalBody'),
+    acsModalTitle: document.getElementById('acsModalTitle'),
+    acsModalSub: document.getElementById('acsModalSub'),
+    acsModalClose: document.getElementById('acsModalClose'),
+    acsModalBackdrop: document.getElementById('acsModalBackdrop'),
+  };
+
+  function delay(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function setAiPulseAnimating(on) {
+    var p = el.drawerAiLoadingPulse;
+    if (!p) return;
+    p.classList.toggle('is-animating', !!on);
+    p.setAttribute('aria-busy', on ? 'true' : 'false');
+  }
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /** ACS-style severity glyphs (approx. console): high ^^, med ==, low vv. */
+  function severityIconsHtml(row) {
+    var S = String(row.severity || '').toLowerCase();
+    var pf = String(row.severityPf || '').toLowerCase();
+    var mod = 'severity-icons--medium';
+    var glyph = '==';
+    var label = row.severity || 'Unknown';
+    if (S === 'critical' || pf === 'red') {
+      mod = 'severity-icons--critical';
+      glyph = '^^';
+    } else if (S === 'high' || pf === 'orange') {
+      mod = 'severity-icons--high';
+      glyph = '^^';
+    } else if (S === 'low' || pf === 'blue') {
+      mod = 'severity-icons--low';
+      glyph = 'vv';
+    } else {
+      mod = 'severity-icons--medium';
+      glyph = '==';
+    }
+    return '<span class="severity-icons ' + mod + '" title="' + esc(label) + '" aria-label="' + esc(label) + ' severity">' + glyph + '</span>';
+  }
+
+  function prioritizationScoreFromEnrichment(data) {
+    if (!data) return null;
+    var a = data.ai_analysis || data;
+    var n = a && a.prioritization_score;
+    if (n == null || n === '') return null;
+    var num = Number(n);
+    if (!isFinite(num)) return null;
+    return Math.max(0, Math.min(100, Math.round(num)));
+  }
+
+  function aiBadgeInnerHtml(slug) {
+    var s = esc(slug);
+    var cached = enrichedCache[slug];
+    if (cached) {
+      var sc = prioritizationScoreFromEnrichment(cached);
+      var label = sc != null ? String(sc) : 'AI';
+      var title = sc != null
+        ? ('Prioritization score ' + sc + ' (AI) — open summary')
+        : 'View AI summary';
+      var aria = sc != null
+        ? ('Prioritization score ' + sc + ' from AI. Open summary for this violation.')
+        : 'View AI summary for this violation';
+      return '<button type="button" class="ai-badge-btn ai-badge-btn--filled ai-open-drawer" data-slug="' + s + '" title="' + esc(title) + '" aria-label="' + esc(aria) + '">' + esc(label) + '</button>';
+    }
+    return '<button type="button" class="ai-badge-btn ai-badge-btn--outline ai-open-drawer" data-slug="' + s + '" title="Open AI summary (will generate if needed)" aria-label="Open AI summary for this violation">AI</button>';
+  }
+
+  function refreshAiBadgeCell(slug) {
+    var cell = el.tbody.querySelector('td[data-ai-badge="' + slug + '"]');
+    if (!cell) return;
+    cell.innerHTML = aiBadgeInnerHtml(slug);
+  }
+
+  /**
+   * Dense key/value rows — labels match ACS Alert / v1.Alert-style fields
+   * (see research deliverable: clusterName, namespace, lifecycleStage, policy, deployment, violations, etc.).
+   */
+  function renderEvidenceTable(alert) {
+    var pol = alert.policy || {};
+    var dep = alert.deployment || {};
+    var v0 = (alert.violations || [])[0] || {};
+    var img = dep.containers && dep.containers[0] && dep.containers[0].image;
+    var fullName = img && img.name && img.name.fullName ? img.name.fullName : '—';
+    var deploymentVal = dep.name
+      ? (dep.name + (dep.type ? ' (' + dep.type + ')' : ''))
+      : '—';
+    var rows = [
+      ['Alert ID', alert.id || '—'],
+      ['State', alert.state || '—'],
+      ['Cluster', alert.clusterName || '—'],
+      ['Namespace', alert.namespace || '—'],
+      ['Policy name', pol.name || '—'],
+      ['Policy severity', pol.severity || '—'],
+      ['Lifecycle stage', alert.lifecycleStage || '—'],
+      ['Entity type', alert.entityType || '—'],
+      ['Deployment', deploymentVal],
+      ['Violation message', v0.message || '—'],
+      ['Violation type', v0.type || '—'],
+      ['Image', fullName],
+      ['Description', pol.description || '—'],
+      ['Rationale', pol.rationale || '—'],
+      ['Remediation', pol.remediation || '—'],
+    ];
+    var html = '<table class="detail-table"><tbody>';
+    rows.forEach(function (r) {
+      html += '<tr><th scope="row">' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function riskLabelModifier(level) {
+    var L = String(level || '').toUpperCase();
+    if (L === 'CRITICAL') return 'pf-m-red';
+    if (L === 'HIGH') return 'pf-m-orange';
+    if (L === 'MEDIUM') return 'pf-m-gold';
+    if (L === 'LOW') return 'pf-m-blue';
+    return 'pf-m-outline';
+  }
+
+  function renderAiAnalysis(ai) {
+    var a = ai.ai_analysis || ai;
+    if (!a) return '<p class="demo-subtle">No ai_analysis in response.</p>';
+    var score = a.prioritization_score != null ? a.prioritization_score : '—';
+    var risk = a.risk_level || '—';
+    var riskMod = riskLabelModifier(risk);
+    var oneLine = (a.one_sentence_summary || '').trim();
+    if (!oneLine) {
+      oneLine = 'Summary not provided—add one_sentence_summary to the LLM output.';
+    }
+    var html = '';
+    html += '<div class="ai-hero">';
+    html += '<div class="ai-hero__top">';
+    html += '<div class="score-ring" title="Prioritization score">' + esc(String(score)) + '</div>';
+    html += '<div class="ai-hero__meta">';
+    html += '<div class="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-flex-wrap" style="gap:0.35rem;">';
+    html += '<span class="pf-v5-c-label ' + riskMod + '"><span class="pf-v5-c-label__content">' + esc(risk) + '</span></span>';
+    html += '<span class="pf-v5-c-label pf-m-blue"><span class="pf-v5-c-label__content">Confidence: ' + esc(a.true_positive_confidence || '—') + '</span></span>';
+    html += '<span class="pf-v5-c-label pf-m-outline"><span class="pf-v5-c-label__content">Timeline: ' + esc(a.timeline || '—') + '</span></span>';
+    html += '</div></div></div>';
+    html += '<p class="ai-hero__summary">' + esc(oneLine) + '</p>';
+    html += '</div>';
+
+    html += '<div class="ai-prose ai-prose--details">';
+    html += '<p><strong>True positive rationale</strong> ' + esc(a.true_positive_rationale || '—') + '</p>';
+    html += '<p><strong>Attack vector</strong> ' + esc(a.attack_vector || '—') + '</p>';
+    html += '<p><strong>Blast radius</strong> ' + esc(a.blast_radius || '—') + '</p>';
+    html += '<p><strong>Prioritization rationale</strong> ' + esc(a.prioritization_rationale || '—') + '</p>';
+    if ((a.recommended_actions || []).length) {
+      html += '<p><strong>Recommended actions</strong></p><ol>';
+      a.recommended_actions.forEach(function (x) { html += '<li>' + esc(x) + '</li>'; });
+      html += '</ol>';
+    } else {
+      html += '<p><strong>Recommended actions</strong> —</p>';
+    }
+    if ((a.mitigation_strategies || []).length) {
+      html += '<p><strong>Mitigation strategies</strong></p><ul>';
+      a.mitigation_strategies.forEach(function (x) { html += '<li>' + esc(x) + '</li>'; });
+      html += '</ul>';
+    } else {
+      html += '<p><strong>Mitigation strategies</strong> —</p>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function updateRowBadge(slug) {
+    var cell = document.querySelector('[data-ai-badge="' + slug + '"]');
+    if (!cell) return;
+    cell.innerHTML = aiBadgeInnerHtml(slug);
+  }
+
+  /**
+   * Loads enrichment JSON from disk (simulates backend → LLM).
+   * @param {string} slug
+   * @param {{ force?: boolean }} opts - if force, skip cache
+   */
+  function loadEnrichment(slug, opts) {
+    opts = opts || {};
+    if (!opts.force && enrichedCache[slug]) {
+      return Promise.resolve(enrichedCache[slug]);
+    }
+    return delay(AI_SIMULATED_LATENCY_MS).then(function () {
+      if (window.__MOCK_DATA__ && window.__MOCK_DATA__.enrichments && window.__MOCK_DATA__.enrichments[slug]) {
+        return window.__MOCK_DATA__.enrichments[slug];
+      }
+      return fetch('data/enrichments/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    }).then(function (data) {
+      enrichedCache[slug] = data;
+      updateRowBadge(slug);
+      return data;
+    });
+  }
+
+  function loadAlert(slug) {
+    if (alertCache[slug]) return Promise.resolve(alertCache[slug]);
+    if (window.__MOCK_DATA__ && window.__MOCK_DATA__.alerts && window.__MOCK_DATA__.alerts[slug]) {
+      var a = window.__MOCK_DATA__.alerts[slug];
+      alertCache[slug] = a;
+      return Promise.resolve(a);
+    }
+    return fetch('data/alerts/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (data) {
+      alertCache[slug] = data;
+      return data;
+    });
+  }
+
+  function openAcsDetailsModal(slug) {
+    acsModalSlug = slug;
+    var row = manifest.alerts.filter(function (a) { return a.slug === slug; })[0];
+    el.acsModalTitle.textContent = (row && row.policyName) || 'Violation';
+    el.acsModalSub.textContent = (row && row.entity) ? row.entity + (row.clusterNs ? ' · ' + row.clusterNs : '') : '';
+    el.acsModalBody.innerHTML = '<p class="detail-loading"><span class="pf-v5-c-spinner pf-m-sm" role="progressbar" aria-hidden="true"></span> Loading…</p>';
+    el.acsModalRoot.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    loadAlert(slug).then(function (alert) {
+      if (acsModalSlug !== slug) return;
+      el.acsModalBody.innerHTML = '<p class="drawer-section__lede">Original violation data from ACS</p>' + renderEvidenceTable(alert);
+    }).catch(function (e) {
+      if (acsModalSlug !== slug) return;
+      el.acsModalBody.innerHTML = '<p class="pf-v5-c-alert pf-m-danger">Could not load violation data. ' + esc(e.message) + '</p>';
+    });
+  }
+
+  function closeAcsModal() {
+    acsModalSlug = null;
+    el.acsModalRoot.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function openDrawer(slug) {
+    currentSlug = slug;
+    var row = manifest.alerts.filter(function (a) { return a.slug === slug; })[0];
+    el.drawerSubtitle.textContent = (row && row.policyName ? row.policyName : '') + ' · ' + (row && row.entity ? row.entity : '');
+    el.drawerPanel.hidden = false;
+    el.drawerRoot.classList.add('pf-m-expanded');
+
+    var det = document.getElementById('drawerViolationDetails');
+    if (det) det.removeAttribute('open');
+
+    el.drawerViolationCtx.innerHTML = '<p class="detail-loading"><span class="pf-v5-c-spinner pf-m-sm" role="progressbar" aria-hidden="true"></span> Loading details…</p>';
+    el.drawerAiBody.innerHTML = '';
+
+    if (enrichedCache[slug]) {
+      setAiPulseAnimating(false);
+      el.drawerAiLoading.hidden = true;
+      el.drawerAiBody.hidden = false;
+      el.drawerAiBody.innerHTML = renderAiAnalysis(enrichedCache[slug]);
+      refreshAiBadgeCell(slug);
+    } else {
+      el.drawerAiBody.hidden = true;
+      el.drawerAiLoading.hidden = false;
+      setAiPulseAnimating(true);
+
+      loadEnrichment(slug, { force: false }).then(function (data) {
+        if (currentSlug !== slug) return;
+        setAiPulseAnimating(false);
+        el.drawerAiLoading.hidden = true;
+        el.drawerAiBody.hidden = false;
+        el.drawerAiBody.innerHTML = renderAiAnalysis(data);
+        refreshAiBadgeCell(slug);
+      }).catch(function (e) {
+        if (currentSlug !== slug) return;
+        setAiPulseAnimating(false);
+        el.drawerAiLoading.hidden = true;
+        el.drawerAiBody.hidden = false;
+        el.drawerAiBody.innerHTML = '<div class="pf-v5-c-alert pf-m-danger"><p>Failed to load enrichment. ' + esc(e.message) + '</p><p class="demo-subtle">Ensure <code>mock-data.js</code> is next to this HTML, or run from a local server with <code>data/</code>.</p></div>';
+      });
+    }
+
+    loadAlert(slug).then(function (alert) {
+      if (currentSlug !== slug) return;
+      el.drawerViolationCtx.innerHTML = renderEvidenceTable(alert);
+    }).catch(function (e) {
+      if (currentSlug !== slug) return;
+      el.drawerViolationCtx.innerHTML = '<p class="pf-v5-c-alert pf-m-danger">Failed to load violation data: ' + esc(e.message) + '</p>';
+    });
+  }
+
+  function closeDrawer() {
+    setAiPulseAnimating(false);
+    el.drawerPanel.hidden = true;
+    el.drawerRoot.classList.remove('pf-m-expanded');
+  }
+
+  function selectedSlugs() {
+    return Array.prototype.slice.call(document.querySelectorAll('.row-check:checked')).map(function (cb) {
+      return cb.getAttribute('data-slug');
+    });
+  }
+
+  function updateBulkUi() {
+    var n = selectedSlugs().length;
+    el.bulkCount.textContent = String(n);
+    el.bulkBar.classList.toggle('bulk-toolbar--has-selection', n > 0);
+    el.btnBulk.disabled = n === 0;
+    var total = manifest ? manifest.alerts.length : 0;
+    el.selectAll.indeterminate = n > 0 && n < total;
+    el.selectAll.checked = total > 0 && n === total;
+  }
+
+  function buildTable() {
+    el.tbody.innerHTML = '';
+    manifest.alerts.forEach(function (row) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="pf-v5-c-table__check"><input type="checkbox" class="row-check" data-slug="' + esc(row.slug) + '" aria-label="Select ' + esc(row.entity) + '" /></td>' +
+        '<td data-label="Policy"><a href="#" class="pf-v5-c-table__cell-link policy-link" data-slug="' + esc(row.slug) + '">' + esc(row.policyName) + '</a></td>' +
+        '<td data-label="Entity"><span class="cell-entity-name">' + esc(row.entity) + '</span> <span class="demo-subtle cell-entity-ns">(' + esc(row.clusterNs) + ')</span></td>' +
+        '<td>Deployment</td><td>No</td>' +
+        '<td data-label="Severity">' + severityIconsHtml(row) + '</td>' +
+        '<td>' + esc(row.category) + '</td><td>' + esc(row.lifecycle) + '</td><td>' + esc(row.timeDisplay) + '</td>' +
+        '<td data-ai-badge="' + esc(row.slug) + '">' + aiBadgeInnerHtml(row.slug) + '</td>';
+      el.tbody.appendChild(tr);
+    });
+
+    el.resultCount.textContent = String(manifest.alerts.length);
+
+    el.tbody.querySelectorAll('.row-check').forEach(function (cb) {
+      cb.addEventListener('change', updateBulkUi);
+    });
+    el.selectAll.addEventListener('change', function () {
+      var on = el.selectAll.checked;
+      el.tbody.querySelectorAll('.row-check').forEach(function (cb) { cb.checked = on; });
+      updateBulkUi();
+    });
+
+    el.tbody.querySelectorAll('.policy-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        openAcsDetailsModal(a.getAttribute('data-slug'));
+      });
+    });
+  }
+
+  el.tbody.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.ai-open-drawer');
+    if (!btn || !el.tbody.contains(btn)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openDrawer(btn.getAttribute('data-slug'));
+  });
+
+  el.btnBulk.addEventListener('click', function () {
+    var slugs = selectedSlugs();
+    if (!slugs.length) return;
+    el.bulkProgress.hidden = false;
+    el.btnBulk.disabled = true;
+    el.bulkProgressText.textContent = 'Enriching ' + slugs.length + ' violation' + (slugs.length === 1 ? '' : 's') + '…';
+
+    /** Re-fetch enrichment for every selected row (same as “first ask” each time). */
+    Promise.all(slugs.map(function (slug) {
+      return loadEnrichment(slug, { force: true });
+    })).then(function () {
+      slugs.forEach(refreshAiBadgeCell);
+      el.bulkProgress.hidden = true;
+      el.bulkProgressText.textContent = '';
+      updateBulkUi();
+    }).catch(function (e) {
+      el.bulkProgress.hidden = true;
+      updateBulkUi();
+      alert('Bulk enrich failed: ' + e.message);
+    });
+  });
+
+  el.closeDrawer.addEventListener('click', closeDrawer);
+  el.closeDrawer2.addEventListener('click', closeDrawer);
+
+  el.btnRefreshAi.addEventListener('click', function () {
+    if (!currentSlug) return;
+    el.drawerAiBody.hidden = true;
+    el.drawerAiLoading.hidden = false;
+    setAiPulseAnimating(true);
+    delete enrichedCache[currentSlug];
+    loadEnrichment(currentSlug, { force: true }).then(function (data) {
+      setAiPulseAnimating(false);
+      el.drawerAiLoading.hidden = true;
+      el.drawerAiBody.hidden = false;
+      el.drawerAiBody.innerHTML = renderAiAnalysis(data);
+      refreshAiBadgeCell(currentSlug);
+    }).catch(function (e) {
+      setAiPulseAnimating(false);
+      el.drawerAiLoading.hidden = true;
+      el.drawerAiBody.hidden = false;
+      el.drawerAiBody.innerHTML = '<div class="pf-v5-c-alert pf-m-danger">' + esc(e.message) + '</div>';
+    });
+  });
+
+  el.acsModalClose.addEventListener('click', closeAcsModal);
+  el.acsModalBackdrop.addEventListener('click', closeAcsModal);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && el.acsModalRoot && !el.acsModalRoot.hidden) {
+      closeAcsModal();
+    }
+  });
+
+  function bootstrap() {
+    if (window.__MOCK_DATA__ && window.__MOCK_DATA__.manifest) {
+      manifest = window.__MOCK_DATA__.manifest;
+      buildTable();
+      updateBulkUi();
+      return;
+    }
+    fetch('data/manifest.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (m) {
+        manifest = m;
+        buildTable();
+        updateBulkUi();
+      })
+      .catch(function (e) {
+        el.tbody.innerHTML = '<tr><td colspan="10"><div class="pf-v5-c-alert pf-m-danger">Could not load data. Add <code>mock-data.js</code> next to this file (see README), or use a local server with <code>data/manifest.json</code>.<br/><br/>' + esc(e.message) + '</div></td></tr>';
+      });
+  }
+
+  bootstrap();
+})();
+  </script>
+</body>
+</html>

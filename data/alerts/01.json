@@ -1,0 +1,58 @@
+{
+  "id": "cef0f091-0b70-473c-bb14-e04149f99719",
+  "policy": {
+    "name": "Fixable Severity at least Important",
+    "severity": "HIGH_SEVERITY",
+    "description": "Alert on deployments with fixable vulnerabilities with a Severity Rating at least Important",
+    "rationale": "Known vulnerabilities make it easier for adversaries to exploit your application. You can fix these high-severity vulnerabilities by updating to a newer version of the affected component(s).",
+    "remediation": "Use your package manager to update to a fixed version in future builds or speak with your security team to mitigate the vulnerabilities.",
+    "categories": [
+      "Vulnerability Management"
+    ],
+    "lifecycleStages": [
+      "BUILD",
+      "DEPLOY"
+    ]
+  },
+  "lifecycleStage": "DEPLOY",
+  "clusterName": "bm-customer-demo",
+  "namespace": "ms-demo",
+  "deployment": {
+    "name": "redis-cart",
+    "type": "Deployment",
+    "namespace": "ms-demo",
+    "labels": {
+      "app.openshift.io/runtime": "redis"
+    },
+    "containers": [
+      {
+        "name": "redis",
+        "image": {
+          "id": "sha256:2afba59292f25f5d1af200496db41bea2c6c816b059f57ae74703a50a03a27d0",
+          "name": {
+            "registry": "docker.io",
+            "remote": "library/redis",
+            "tag": "alpine",
+            "fullName": "docker.io/library/redis:alpine"
+          },
+          "notPullable": false,
+          "isClusterLocal": false,
+          "idV2": ""
+        }
+      }
+    ]
+  },
+  "image": null,
+  "resource": null,
+  "violations": [
+    {
+      "message": "Fixable CVE-2026-22184 (CVSS 9.8) (severity Critical) found in component 'zlib' (version 1.3.1-r2) in container 'redis', resolved by version 1.3.2-r0",
+      "type": "GENERIC",
+      "time": null
+    }
+  ],
+  "time": "2026-03-09T20:16:16.257823293Z",
+  "firstOccurred": "2026-03-09T20:16:16.257823293Z",
+  "state": "ACTIVE",
+  "entityType": "DEPLOYMENT"
+}

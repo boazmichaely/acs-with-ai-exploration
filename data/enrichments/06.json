@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "recommendationservice shows the same default SA automount anti-pattern—batch fix it with the other ms-demo Python services so one Helm/Kustomize change clears several alerts.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "high",
+    "true_positive_rationale": "Policy text and violation messages align: default SA tokens mounted though recommendation ranking rarely needs raw API access.",
+    "attack_vector": "Stolen workload credentials could abuse Kubernetes API permissions inherited from the SA binding.",
+    "blast_radius": "Isolated to recommendationservice unless default SA can reach unexpected resources via broad Roles.",
+    "prioritization_score": 54,
+    "prioritization_rationale": "Same MEDIUM risk class as peer services; score reflects operational efficiency of fixing it in a group rather than unique exploit urgency.",
+    "recommended_actions": [
+      "Apply the same automount=false patch used for sibling microservices in the demo.",
+      "If gRPC clients need metadata only from ConfigMaps, migrate off in-cluster API reads.",
+      "Track remediation in one ticket covering all bookstore Python deployments."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Use admission policies to flag future Deployment creates that leave automount defaulted on in production namespaces."
+    ]
+  }
+}

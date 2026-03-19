@@ -1,0 +1,21 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "Netcat policy tripped on adservice while the exported alert list is empty—open the full runtime view in ACS before you treat this as confirmed malicious activity.",
+    "risk_level": "MEDIUM",
+    "true_positive_confidence": "medium",
+    "true_positive_rationale": "The alert is ACTIVE and tied to a netcat policy, but this JSON export carries no violation lines; treat as a signal that still needs corroboration from Central.",
+    "attack_vector": "If netcat truly ran inside adservice, an attacker with foothold could probe internal ports or tunnel; if it is noise, wasting cycles still distracts responders.",
+    "blast_radius": "Contained to adservice unless combined with broader exec or credential theft findings from the same timeframe.",
+    "prioritization_score": 52,
+    "prioritization_rationale": "MEDIUM policy plus ambiguous evidence sits behind confirmed HIGH runtime issues (e.g., exec abuse) on the same workload.",
+    "recommended_actions": [
+      "Review the live alert in ACS for process or network indicators backing the policy.",
+      "Remove nc from the container image if it is not required for health checks.",
+      "Cross-reference timeline with alert-03 exec events to see if the same operator ran both behaviors."
+    ],
+    "timeline": "short-term",
+    "mitigation_strategies": [
+      "Apply egress controls temporarily if you suspect active probing while you validate the detection."
+    ]
+  }
+}

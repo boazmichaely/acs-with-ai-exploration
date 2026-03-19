@@ -1,0 +1,68 @@
+{
+  "id": "9d60c123-9542-4cc1-875a-a37be43cca10",
+  "policy": {
+    "name": "Pod Service Account Token Automatically Mounted",
+    "severity": "MEDIUM_SEVERITY",
+    "description": "Protect pod default service account tokens from compromise by minimizing the mounting of the default service account token to only those pods whose application requires interaction with the Kubernetes API.",
+    "rationale": "By default, Kubernetes automatically provisions a service account for each pod and mounts the secret at runtime. This service account is not typically used. If this pod is compromised and the compromised user has access to the service account, the service account could be used to escalate privileges within the cluster. To reduce the likelihood of privilege escalation this service account should not be mounted by default unless the pod requires direct access to the Kubernetes API as part of the pods functionality.",
+    "remediation": "Add `automountServiceAccountToken: false` or a value distinct from 'default' for the `serviceAccountName` key to the deployment's Pod configuration.",
+    "categories": [
+      "Privileges",
+      "Security Best Practices"
+    ],
+    "lifecycleStages": [
+      "DEPLOY"
+    ]
+  },
+  "lifecycleStage": "DEPLOY",
+  "clusterName": "bm-customer-demo",
+  "namespace": "ms-demo",
+  "deployment": {
+    "name": "frontend",
+    "type": "Deployment",
+    "namespace": "ms-demo",
+    "labels": {
+      "app.openshift.io/runtime": "golang"
+    },
+    "containers": [
+      {
+        "name": "server",
+        "image": {
+          "id": "sha256:6e88139a079eac423007cdc0499d91eafe4f669d7f096ef0485204d409e144c1",
+          "name": {
+            "registry": "us-central1-docker.pkg.dev",
+            "remote": "google-samples/microservices-demo/frontend",
+            "tag": "v0.10.2",
+            "fullName": "us-central1-docker.pkg.dev/google-samples/microservices-demo/frontend:v0.10.2"
+          },
+          "notPullable": false,
+          "isClusterLocal": false,
+          "idV2": ""
+        }
+      }
+    ]
+  },
+  "image": null,
+  "resource": null,
+  "violations": [
+    {
+      "message": "Deployment mounts the service account tokens.",
+      "type": "GENERIC",
+      "time": null
+    },
+    {
+      "message": "Namespace has name 'ms-demo'",
+      "type": "GENERIC",
+      "time": null
+    },
+    {
+      "message": "Service Account is set to 'default'",
+      "type": "GENERIC",
+      "time": null
+    }
+  ],
+  "time": "2026-03-09T16:20:04.489638842Z",
+  "firstOccurred": "2026-03-09T16:20:04.489638842Z",
+  "state": "ACTIVE",
+  "entityType": "DEPLOYMENT"
+}
