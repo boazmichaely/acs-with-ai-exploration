@@ -1,0 +1,516 @@
+{
+  "id": "f2d91aff-05cd-45e6-bd7f-50eb153fac7d",
+  "policy": {
+    "name": "Kubernetes Actions: Exec into Pod",
+    "severity": "HIGH_SEVERITY",
+    "description": "Alerts when Kubernetes API receives request to execute command in container",
+    "rationale": "'pods/exec' is non-standard approach for interacting with containers. Attackers with permissions could execute malicious code and compromise resources within a cluster",
+    "remediation": "Restrict RBAC access to the 'pods/exec' resource according to the Principle of Least Privilege. Limit such usage only to development, testing or debugging (non-production) activities",
+    "categories": [
+      "Kubernetes Events"
+    ],
+    "lifecycleStages": [
+      "RUNTIME"
+    ]
+  },
+  "lifecycleStage": "RUNTIME",
+  "clusterName": "bm-customer-demo",
+  "namespace": "ms-demo",
+  "deployment": {
+    "name": "adservice",
+    "type": "Deployment",
+    "namespace": "ms-demo",
+    "labels": {
+      "app.openshift.io/runtime": "java"
+    },
+    "containers": [
+      {
+        "name": "server",
+        "image": {
+          "id": "sha256:05061c55c41572d0dddbf480edf5ccb3339d4e95207a69accd4ed03528eefe13",
+          "name": {
+            "registry": "us-central1-docker.pkg.dev",
+            "remote": "google-samples/microservices-demo/adservice",
+            "tag": "v0.10.2",
+            "fullName": "us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice:v0.10.2"
+          },
+          "notPullable": false,
+          "isClusterLocal": false,
+          "idV2": ""
+        }
+      }
+    ]
+  },
+  "image": null,
+  "resource": null,
+  "violations": [
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:56:33.296576168Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:56:33.125997672Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:56:28.353733461Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:56:28.195387924Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:04:25.435608071Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:04:25.300547047Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:04:20.201048555Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T17:04:20.055503282Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:56:30.059799139Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:56:29.917550182Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:56:23.160844682Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:56:23.017895179Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:43:10.949729552Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:43:10.807121455Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:43:01.750330196Z"
+    },
+    {
+      "message": "Kubernetes API received exec 'sh -c nc -zv -w 3 172.30.226.217 50051' request into pod 'adservice-5fc66584b9-2vwk9' container 'server'",
+      "keyValueAttrs": {
+        "attrs": [
+          {
+            "key": "pod",
+            "value": "adservice-5fc66584b9-2vwk9"
+          },
+          {
+            "key": "container",
+            "value": "server"
+          },
+          {
+            "key": "commands",
+            "value": "sh -c nc -zv -w 3 172.30.226.217 50051"
+          },
+          {
+            "key": "Username",
+            "value": "kube:admin"
+          },
+          {
+            "key": "Groups",
+            "value": "system:cluster-admins, system:authenticated"
+          }
+        ]
+      },
+      "type": "K8S_EVENT",
+      "time": "2026-03-09T16:43:01.612045905Z"
+    }
+  ],
+  "time": "2026-03-09T17:56:33.296679738Z",
+  "firstOccurred": "2026-03-09T16:43:01.614195786Z",
+  "state": "ACTIVE",
+  "entityType": "DEPLOYMENT"
+}

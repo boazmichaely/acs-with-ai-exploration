@@ -1,0 +1,51 @@
+{
+  "id": "5bd04ccf-3fe0-4dd1-975b-ba7200c42709",
+  "policy": {
+    "name": "Netcat Execution Detected",
+    "severity": "MEDIUM_SEVERITY",
+    "description": "Detects execution of netcat in a container",
+    "rationale": "netcat is a known malicious process",
+    "remediation": "Consider removing package managers during the build process that could be used to download such software. Check that exposed ports don't allow for remote code execution",
+    "categories": [
+      "Network Tools"
+    ],
+    "lifecycleStages": [
+      "RUNTIME"
+    ]
+  },
+  "lifecycleStage": "RUNTIME",
+  "clusterName": "bm-customer-demo",
+  "namespace": "ms-demo",
+  "deployment": {
+    "name": "adservice",
+    "type": "Deployment",
+    "namespace": "ms-demo",
+    "labels": {
+      "app.openshift.io/runtime": "java"
+    },
+    "containers": [
+      {
+        "name": "server",
+        "image": {
+          "id": "sha256:05061c55c41572d0dddbf480edf5ccb3339d4e95207a69accd4ed03528eefe13",
+          "name": {
+            "registry": "us-central1-docker.pkg.dev",
+            "remote": "google-samples/microservices-demo/adservice",
+            "tag": "v0.10.2",
+            "fullName": "us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice:v0.10.2"
+          },
+          "notPullable": false,
+          "isClusterLocal": false,
+          "idV2": ""
+        }
+      }
+    ]
+  },
+  "image": null,
+  "resource": null,
+  "violations": [],
+  "time": "2026-03-09T17:04:20.360952301Z",
+  "firstOccurred": "2026-03-09T16:43:01.911610216Z",
+  "state": "ACTIVE",
+  "entityType": "DEPLOYMENT"
+}

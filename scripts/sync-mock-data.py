@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-r"""Bundle sample alerts + enrichments into ui-prototype/data/ and mock-data.js.
+r"""Bundle sample alerts + enrichments into data/ and mock-data.js.
 
 Does NOT call an external LLM. Expected workflow:
 
 1. `data/enrichments/01.json` … `10.json` — each file is `{"ai_analysis": { ... }}`
-   produced by **emulating** the prompt in `prompt-template.md` (e.g. Cursor assistant
-   with each `sample-alerts/alert-NN.json`), or pasted from any LLM later.
+   produced by emulating the prompt in `prompt-template.md` (e.g. with each
+   `sample-alerts/alert-NN.json`), or pasted from any LLM later.
 
-2. Run this script to copy `../sample-alerts/alert-*.json` → `data/alerts/`, build
-   `manifest.json`, and write `mock-data.js`.
+2. Run this script to copy sample-alerts/ → data/alerts/, build manifest.json,
+   and write mock-data.js.
 
-Usage (from ui-prototype):
+Usage (from repo root):
 
   python3 scripts/sync-mock-data.py
 """
@@ -22,10 +22,10 @@ import shutil
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-UI = os.path.dirname(HERE)
-PROMPT_EXPLORATION = os.path.dirname(UI)
-SAMPLE = os.path.join(PROMPT_EXPLORATION, "sample-alerts")
-OUT = os.path.join(UI, "data")
+REPO_ROOT = os.path.dirname(HERE)
+SAMPLE = os.path.join(REPO_ROOT, "sample-alerts")
+OUT = os.path.join(REPO_ROOT, "data")
+UI = REPO_ROOT
 
 
 def sev_label(sev: str) -> tuple[str, str]:

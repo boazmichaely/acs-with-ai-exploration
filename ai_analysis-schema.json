@@ -1,0 +1,15 @@
+{
+  "ai_analysis": {
+    "one_sentence_summary": "Single sentence for UI quick-read (plain language, no JSON inside).",
+    "risk_level": "CRITICAL | HIGH | MEDIUM | LOW",
+    "true_positive_confidence": "high | medium | low",
+    "true_positive_rationale": "string",
+    "attack_vector": "string",
+    "blast_radius": "string",
+    "prioritization_score": 0,
+    "prioritization_rationale": "string",
+    "recommended_actions": ["string"],
+    "timeline": "string",
+    "mitigation_strategies": ["string"]
+  }
+}
