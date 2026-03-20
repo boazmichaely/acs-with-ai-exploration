@@ -767,7 +767,7 @@
       if (window.__MOCK_DATA__ && window.__MOCK_DATA__.enrichments && window.__MOCK_DATA__.enrichments[slug]) {
         return window.__MOCK_DATA__.enrichments[slug];
       }
-      return fetch('data/enrichments/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
+      return fetch('../data/enrichments/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       });
@@ -785,7 +785,7 @@
       alertCache[slug] = a;
       return Promise.resolve(a);
     }
-    return fetch('data/alerts/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
+    return fetch('../data/alerts/' + slug + '.json', { cache: 'no-store' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function (data) {
@@ -991,7 +991,7 @@
       updateBulkUi();
       return;
     }
-    fetch('data/manifest.json', { cache: 'no-store' })
+    fetch('../data/manifest.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (m) {
         manifest = m;

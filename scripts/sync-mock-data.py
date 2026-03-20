@@ -4,7 +4,7 @@ r"""Bundle sample alerts + enrichments into data/ and mock-data.js.
 Does NOT call an external LLM. Expected workflow:
 
 1. `data/enrichments/01.json` … `10.json` — each file is `{"ai_analysis": { ... }}`
-   produced by emulating the prompt in `prompt-template.md` (e.g. with each
+   produced by emulating the prompt in `templates/prompt-template.md` (e.g. with each
    `sample-alerts/alert-NN.json`), or pasted from any LLM later.
 
 2. Run this script to copy sample-alerts/ → data/alerts/, build manifest.json,
@@ -25,7 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(HERE)
 SAMPLE = os.path.join(REPO_ROOT, "sample-alerts")
 OUT = os.path.join(REPO_ROOT, "data")
-UI = REPO_ROOT
+DEMO_DIR = os.path.join(REPO_ROOT, "demo")
 
 
 def sev_label(sev: str) -> tuple[str, str]:
@@ -62,7 +62,7 @@ def main() -> int:
         if not os.path.isfile(enc_path):
             print(
                 f"Error: missing {enc_path}\n"
-                "Create it with emulated LLM output (see prompt-template.md + sample-alerts).",
+                "Create it with emulated LLM output (see templates/prompt-template.md + sample-alerts).",
                 file=sys.stderr,
             )
             return 1
@@ -115,7 +115,8 @@ def main() -> int:
         with open(os.path.join(OUT, "enrichments", f"{slug}.json"), encoding="utf-8") as f:
             bundle["enrichments"][slug] = json.load(f)
 
-    mock_js = os.path.join(UI, "mock-data.js")
+    os.makedirs(DEMO_DIR, exist_ok=True)
+    mock_js = os.path.join(DEMO_DIR, "mock-data.js")
     with open(mock_js, "w", encoding="utf-8") as f:
         f.write("window.__MOCK_DATA__ = ")
         f.write(json.dumps(bundle, separators=(",", ":")))
